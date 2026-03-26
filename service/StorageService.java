@@ -6,8 +6,8 @@ import java.io.*;
 import java.util.*;
 
 /**
- * StorageService handles saving and loading book metadata.
- * Format: Title|Rating|Review|Tag1,Tag2...
+ * This class saves and loads ratings and settings to text files.
+ * I used a simple pipe (|) format for the metadata.
  */
 public class StorageService {
     private static final String STORAGE_FILE = "metadata.txt";

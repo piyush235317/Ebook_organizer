@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * The "Brain" of the application.
- * It manages the library of books and handles all the operations.
- * This is easy for a layman to explain: "This class holds and filters my
- * books."
+ * Brain of the app. This is where I put all the logic for 
+ * scanning, filtering, and managing book data.
  */
 public class BookManager {
     private List<IBook> allBooks = new ArrayList<>();
@@ -45,9 +43,7 @@ public class BookManager {
         return allBooks;
     }
 
-    /**
-     * Filters the library by a search query (checks title and path).
-     */
+    // Find books that match what user types in the search bar
     public List<IBook> search(String query) {
         if (query == null || query.isEmpty())
             return allBooks;
@@ -58,9 +54,7 @@ public class BookManager {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filters books that have a specific tag.
-     */
+    // Show only books that have a certain tag
     public List<IBook> filterByTag(String tag) {
         if (tag == null || tag.equals("All"))
             return allBooks;
@@ -69,9 +63,7 @@ public class BookManager {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Gets all unique tags in the system for the sidebar.
-     */
+    // Get all unique tags for the sidebar menu
     public List<String> getUniqueTags() {
         List<String> tags = new ArrayList<>();
         tags.add("All");
@@ -91,9 +83,7 @@ public class BookManager {
         return tags;
     }
 
-    /**
-     * Resets a book to its base form (removes all decorators).
-     */
+    // Reset a book back to normal (removes all ratings/tags)
     public IBook clearMetadata(IBook book) {
         IBook current = book;
         while (current instanceof BookDecorator) {

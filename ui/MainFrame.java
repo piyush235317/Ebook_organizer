@@ -10,9 +10,8 @@ import java.util.List;
 import java.io.File;
 
 /**
- * MainFrame is the "Body" of the application.
- * It's designed like a template so it's easy to explain:
- * "This section is for the header, this one for the sidebar..."
+ * This is the UI (The Body). I split it into methods like initHeader 
+ * and initSidebar so it's easy to read.
  */
 public class MainFrame extends JFrame {
     // --- The Brain ---
@@ -50,9 +49,7 @@ public class MainFrame extends JFrame {
         refreshUI();
     }
 
-    /**
-     * Section 1: The Header (Search & Title)
-     */
+    // Top part - Title and Search bar
     private void initHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
@@ -83,9 +80,7 @@ public class MainFrame extends JFrame {
         add(header, BorderLayout.NORTH);
     }
 
-    /**
-     * Section 2: The Sidebar (Tag Navigation)
-     */
+    // Left side - Tag and Folder history list
     private void initSidebar() {
         sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
@@ -96,9 +91,7 @@ public class MainFrame extends JFrame {
         add(new JScrollPane(sidebarPanel), BorderLayout.WEST);
     }
 
-    /**
-     * Section 3: The Main Library (Central Gallery)
-     */
+    // Middle part - The actual book list and details area
     private void initMainLibrary() {
         // We use a SplitPane for Books and Details
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
