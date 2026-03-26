@@ -15,18 +15,18 @@ A modular and extensible CLI-based Java application to organize ebooks and enric
 ### Steps
 1. **Compile**:
    ```powershell
-   javac -d . main/Main.java model/*.java decorator/*.java service/*.java
+   javac -d bin model/*.java decorator/*.java service/*.java ui/*.java
    ```
 2. **Run**:
    ```powershell
-   java main.Main
+   java -cp bin ui.MainFrame
    ```
 
 ## 🏗 Project Structure
-- `main/`: Entry point and CLI logic.
+- `ui/`: Swing-based graphical user interface (`MainFrame.java`).
 - `model/`: Core interfaces and basic implementations.
-- `decorator/`: Decorator pattern classes.
-- `service/`: Support services like scanning the filesystem.
+- `decorator/`: Decorator pattern classes for metadata enrichment.
+- `service/`: Support services (Scanning, Persistence).
 - `test_books/`: Sample ebook files for testing.
 
 ## 🧠 Design Patterns Used

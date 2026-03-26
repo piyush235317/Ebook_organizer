@@ -1,18 +1,25 @@
 package decorator;
 
-import model.Book;
-import java.util.List;
+import model.IBook;
 
+/**
+ * TagDecorator adds a simple textual tag to a book (e.g., "Fiction", "Java").
+ */
 public class TagDecorator extends BookDecorator {
-    private List<String> tags;
+    private String tag;
 
-    public TagDecorator(Book book, List<String> tags) {
+    public TagDecorator(IBook book, String tag) {
         super(book);
-        this.tags = tags;
+        this.tag = tag;
     }
 
     @Override
-    public String getDescription() {
-        return super.getDescription() + " [Tags: " + String.join(", ", tags) + "]";
+    public String getMetadata() {
+        String baseMetadata = super.getMetadata();
+        if (baseMetadata.equals("No metadata")) {
+            return "Tag: " + tag;
+        }
+        return baseMetadata + " | Tag: " + tag;
     }
+
 }
