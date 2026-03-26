@@ -1,34 +1,46 @@
-# eBook Organizer
+# Explainable eBook Organizer (SDA Project)
 
-A modular and extensible CLI-based Java application to organize ebooks and enrich them with metadata (Rating, Review, Tags) using the **Decorator Design Pattern**.
+A professional, modular eBook library manager built with **zero dependencies** and a clean **"Brain-Body" Architecture**. Designed for simplicity and easy academic justification.
 
-## 🚀 Features
-- **Scan**: Scan directories for `.pdf` and `.epub` files.
-- **Enrich**: Dynamically add metadata like ratings, reviews, and tags.
-- **Decorator Pattern**: A clean implementation showing how to extend functionality without modifying existing classes.
+## 🏗️ The "Brain-Body" Architecture
+The application is split into two logical layers to ensure every component has a single, clear purpose:
 
-## 🛠 Compilation & Execution
+*   **The Brain (`BookManager`)**: The central logic hub. It handles all the "thinking" (scanning files, filtering search results, managing metadata, and folder history).
+*   **The Body (`MainFrame`)**: The UI template. Organized into modular sections for the header, sidebar, and library gallery, making it easy to explain the visual layout.
 
-### Prerequisites
-- Java Development Kit (JDK) 8 or higher.
+## 📂 File Structure
 
-### Steps
-1. **Compile**:
-   ```powershell
-   javac -d bin model/*.java decorator/*.java service/*.java ui/*.java
-   ```
-2. **Run**:
-   ```powershell
-   java -cp bin ui.MainFrame
-   ```
+### 🧠 Backend (The Brain)
+*   **`model/IBook.java`**: The core interface for the Decorator Pattern.
+*   **`model/BaseBook.java`**: The basic implementation representing a real file on disk.
+*   **`decorator/`**: Contains the **Rating**, **Tag**, and **Review** decorators that dynamically add metadata to books.
+*   **`service/BookManager.java`**: The main logic controller (The Brain).
+*   **`service/BookScanner.java`**: Finds PDF/EPUB files and cleans up filenames into titles.
+*   **`service/StorageService.java`**: Handles saving/loading data to `metadata.txt` and `config.txt`.
 
-## 🏗 Project Structure
-- `ui/`: Swing-based graphical user interface (`MainFrame.java`).
-- `model/`: Core interfaces and basic implementations.
-- `decorator/`: Decorator pattern classes for metadata enrichment.
-- `service/`: Support services (Scanning, Persistence).
-- `test_books/`: Sample ebook files for testing.
+### 🖼️ Frontend (The Body)
+*   **`ui/MainFrame.java`**: The main Window. Built as a template with clear sections:
+    *   `initHeader()`: Search and Folder selection.
+    *   `initSidebar()`: Filter by Tag and Recent Folders.
+    *   `initMainLibrary()`: The book list and detail view.
 
-## 🧠 Design Patterns Used
-- **Decorator Design Pattern**: Used for adding behaviors (metadata) to `Book` objects dynamically.
-- **SOLID Principles**: Focused on SRP and OCP.
+## ⚡ Quick Start
+
+### One-Click Run (Windows)
+Double-click the **`run.bat`** file to automatically compile and launch the application.
+
+### Manual Run
+```powershell
+javac -d bin model/*.java decorator/*.java service/*.java ui/*.java
+java -cp bin ui.MainFrame
+```
+
+## ✨ Key Features
+- **Library History**: Remembers all folders you've scanned in the sidebar for easy switching.
+- **Real-Time Search**: Instantly filters your books as you type.
+- **Visual Unicode Ratings**: Gold stars (★★★★★) for a premium feel.
+- **Metadata Reset**: A "Reset" button to quickly clear ratings and tags.
+- **Zero-Dependency**: Pure Java with no external libraries required.
+
+---
+*Created for Software Development and Architecture (SDA) course presentation.*
