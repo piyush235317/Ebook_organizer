@@ -2,7 +2,7 @@ package ui;
 
 import model.IBook;
 import service.BookManager;
-import decorator.NoteDecorator;
+import service.EpubService;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -50,7 +50,10 @@ public class ReaderPanel extends JPanel {
         contentArea.setWrapStyleWord(true);
         contentArea.setMargin(new Insets(30, 40, 30, 40));
         contentArea.setFont(new Font("Georgia", Font.PLAIN, 16));
-        loadBookContent(book);
+        
+        // Use a background thread for EPUB extraction to keep UI smooth
+        new Thread(() -> loadBookContent(book)).start();
+        
         split.setTopComponent(new JScrollPane(contentArea));
 
         // Right: Notes
@@ -86,20 +89,27 @@ public class ReaderPanel extends JPanel {
         String desc = book.getDescription();
         if (desc.contains("(") && desc.contains(")")) {
             String path = desc.substring(desc.lastIndexOf("(") + 1, desc.lastIndexOf(")"));
-            File file = new File(path);
             
             if (path.toLowerCase().endsWith(".txt")) {
                 try {
-                    contentArea.setText(new String(Files.readAllBytes(Paths.get(path))));
-                    contentArea.setCaretPosition(0);
+                    String text = new String(Files.readAllBytes(Paths.get(path)));
+                    SwingUtilities.invokeLater(() -> contentArea.setText(text));
                 } catch (IOException e) {
-                    contentArea.setText("Error reading file.");
+                    SwingUtilities.invokeLater(() -> contentArea.setText("Error reading file."));
                 }
+            } else if (path.toLowerCase().endsWith(".epub")) {
+                SwingUtilities.invokeLater(() -> contentArea.setText("Unzipping EPUB content... please wait..."));
+                String epubText = EpubService.extractText(path);
+                SwingUtilities.invokeLater(() -> {
+                    contentArea.setText(epubText);
+                    contentArea.setCaretPosition(0);
+                });
             } else {
-                contentArea.setText("\n\n   [ INTERNAL READER ]\n\n   Currently showing metadata for:\n   " + 
+                SwingUtilities.invokeLater(() -> contentArea.setText("\n\n   [ PDF OVERVIEW MODE ]\n\n   PDF viewing is handled by your system.\n\n   Title: " + 
                                     book.getTitle() + "\n\n   " + book.getMetadata() + 
-                                    "\n\n   Note: PDF/EPUB binary viewing is not supported in this version.\n   Use the 'Study Notes' on the right to summarize your reading!");
+                                    "\n\n   Summary: Use the Study Notes on the right to track your progress."));
             }
         }
     }
 }
+
