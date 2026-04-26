@@ -104,7 +104,12 @@ public class BookManager {
         return allBooks;
     }
 
-    // Get all unique tags for the sidebar menu
+    // Get tags from all folders (Global taxonomy)
+    public List<String> getGlobalTags() {
+        return StorageService.getAllUniqueTags();
+    }
+
+    // Get all unique tags for the sidebar menu (Folder specific)
     public List<String> getUniqueTags() {
         List<String> tags = new ArrayList<>();
         tags.add("All");
@@ -136,13 +141,11 @@ public class BookManager {
 
     /**
      * Updates a book with a new rating.
-     * Replaces existing rating if it exists.
      */
     public IBook addRating(IBook target, int stars) {
-        // Validation: Ensure rating is always between 1 and 5
         int validStars = Math.max(1, Math.min(5, stars));
-        IBook actual = unwrapDecorator(target, RatingDecorator.class);
-        IBook decorated = new RatingDecorator(actual, validStars);
+        IBook base = stripDecorator(target, RatingDecorator.class);
+        IBook decorated = new RatingDecorator(base, validStars);
         updateBookInList(target, decorated);
         return decorated;
     }
@@ -151,17 +154,22 @@ public class BookManager {
      * Updates a book with a new review.
      */
     public IBook addReview(IBook target, String review) {
-        IBook actual = unwrapDecorator(target, ReviewDecorator.class);
-        IBook decorated = new ReviewDecorator(actual, review);
+        IBook base = stripDecorator(target, ReviewDecorator.class);
+        IBook decorated = new ReviewDecorator(base, review);
         updateBookInList(target, decorated);
         return decorated;
+    }
+
+    public IBook removeReview(IBook target) {
+        IBook base = stripDecorator(target, ReviewDecorator.class);
+        updateBookInList(target, base);
+        return base;
     }
 
     /**
      * Adds a tag to a book.
      */
     public IBook addTag(IBook target, String tag) {
-        // We allow multiple tags, but check for duplicates of the same tag
         if (target.getMetadata().contains("Tag: " + tag))
             return target;
         IBook decorated = new TagDecorator(target, tag);
@@ -170,15 +178,22 @@ public class BookManager {
     }
 
     public IBook addNote(IBook target, String note) {
-        IBook actual = unwrapDecorator(target, NoteDecorator.class);
-        IBook decorated = new NoteDecorator(actual, note);
+        IBook base = stripDecorator(target, NoteDecorator.class);
+        IBook decorated = new NoteDecorator(base, note);
         updateBookInList(target, decorated);
         return decorated;
     }
 
     public IBook addProgress(IBook target, int chapterIndex) {
-        IBook actual = unwrapDecorator(target, ProgressDecorator.class);
-        IBook decorated = new ProgressDecorator(actual, chapterIndex);
+        IBook base = stripDecorator(target, ProgressDecorator.class);
+        IBook decorated = new ProgressDecorator(base, chapterIndex);
+        updateBookInList(target, decorated);
+        return decorated;
+    }
+
+    public IBook renameBook(IBook target, String newTitle) {
+        IBook base = stripDecorator(target, TitleDecorator.class);
+        IBook decorated = new TitleDecorator(base, newTitle);
         updateBookInList(target, decorated);
         return decorated;
     }
@@ -198,6 +213,30 @@ public class BookManager {
             StorageService.saveMetadata(allBooks);
             notifyObservers();
         }
+    }
+
+    /**
+     * Recursively traverses the decorator chain and removes any instances
+     * of the specified decorator class, then rebuilds the rest of the chain.
+     * This prevents redundant layers of the same metadata type.
+     */
+    private IBook stripDecorator(IBook book, Class<?> type) {
+        if (!(book instanceof BookDecorator)) return book;
+        
+        BookDecorator decorator = (BookDecorator) book;
+        IBook inner = stripDecorator(decorator.getDecoratedBook(), type);
+        
+        if (type.isInstance(book)) return inner;
+        
+        // Re-wrap other decorators to maintain the chain without the stripped type
+        if (book instanceof RatingDecorator) return new RatingDecorator(inner, ((RatingDecorator)book).getStars());
+        if (book instanceof TagDecorator) return new TagDecorator(inner, ((TagDecorator)book).getTag());
+        if (book instanceof ReviewDecorator) return new ReviewDecorator(inner, ((ReviewDecorator)book).getReview());
+        if (book instanceof NoteDecorator) return new NoteDecorator(inner, ((NoteDecorator)book).getNote());
+        if (book instanceof ProgressDecorator) return new ProgressDecorator(inner, ((ProgressDecorator)book).getProgress());
+        if (book instanceof TitleDecorator) return new TitleDecorator(inner, ((TitleDecorator)book).getCustomTitle());
+        
+        return book;
     }
 
     private IBook unwrapDecorator(IBook book, Class<?> type) {

@@ -25,4 +25,8 @@ public class ReviewDecorator extends BookDecorator {
         return baseMetadata + " | Review: " + review;
     }
 
+    public String getReview() {
+        return review;
+    }
+
 }

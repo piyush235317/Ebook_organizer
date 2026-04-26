@@ -24,4 +24,8 @@ public class RatingDecorator extends BookDecorator {
         }
         return baseMetadata + " | Rating: " + stars + "/5";
     }
+
+    public int getStars() {
+        return stars;
+    }
 }

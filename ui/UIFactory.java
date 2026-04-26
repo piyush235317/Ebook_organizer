@@ -63,7 +63,7 @@ public class UIFactory {
     }
 
     public static JLabel createHeaderLabel(String text) {
-        JLabel l = new JLabel("  " + text.toUpperCase());
+        JLabel l = new JLabel(text.toUpperCase());
         l.setFont(HEADER_FONT);
         l.setForeground(TEXT_SECONDARY);
         l.setBorder(new EmptyBorder(15, 0, 8, 0));
