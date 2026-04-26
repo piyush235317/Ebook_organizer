@@ -12,14 +12,69 @@ import java.util.stream.Collectors;
  */
 public class BookManager {
     private List<IBook> allBooks = new ArrayList<>();
+    private List<LibraryObserver> observers = new ArrayList<>();
     private BookScanner scanner = new BookScanner();
     private String currentPath;
+    private String searchQuery = "";
+    private String selectedTag = "All";
+    private SortStrategy sortStrategy = new SortByTitle(); // Default strategy
 
     public BookManager() {
         // Initial scan - load first from history
         List<String> history = StorageService.loadPathHistory();
         this.currentPath = history.isEmpty() ? "test_books" : history.get(0);
         refreshLibrary(currentPath);
+    }
+
+    public void setSearchQuery(String query) {
+        this.searchQuery = query == null ? "" : query.toLowerCase();
+        notifyObservers();
+    }
+
+    public void setSelectedTag(String tag) {
+        this.selectedTag = tag == null ? "All" : tag;
+        notifyObservers();
+    }
+
+    public void setSortStrategy(SortStrategy strategy) {
+        this.sortStrategy = strategy;
+        notifyObservers();
+    }
+
+    public void addObserver(LibraryObserver observer) {
+        observers.add(observer);
+        // Immediately notify the new observer with current state
+        notifyObservers();
+    }
+
+    public void removeObserver(LibraryObserver observer) {
+        observers.remove(observer);
+    }
+
+    private void notifyObservers() {
+        List<IBook> processedBooks = allBooks.stream()
+                .filter(this::matchesSearch)
+                .filter(this::matchesTag)
+                .collect(Collectors.toList());
+
+        if (sortStrategy != null) {
+            sortStrategy.sort(processedBooks);
+        }
+
+        for (LibraryObserver observer : observers) {
+            observer.onLibraryChanged(processedBooks);
+        }
+    }
+
+    private boolean matchesSearch(IBook b) {
+        if (searchQuery.isEmpty()) return true;
+        return b.getTitle().toLowerCase().contains(searchQuery) ||
+               b.getDescription().toLowerCase().contains(searchQuery);
+    }
+
+    private boolean matchesTag(IBook b) {
+        if (selectedTag.equals("All")) return true;
+        return b.getMetadata().contains("Tag: " + selectedTag);
     }
 
     public void refreshLibrary(String path) {
@@ -29,6 +84,12 @@ public class BookManager {
         }
         allBooks = scanner.scanDirectory(currentPath);
         StorageService.loadMetadata(allBooks, this);
+        notifyObservers();
+    }
+
+    public void removeRecentPath(String path) {
+        StorageService.removePathFromHistory(path);
+        notifyObservers();
     }
 
     public List<String> getRecentPaths() {
@@ -41,26 +102,6 @@ public class BookManager {
 
     public List<IBook> getAllBooks() {
         return allBooks;
-    }
-
-    // Find books that match what user types in the search bar
-    public List<IBook> search(String query) {
-        if (query == null || query.isEmpty())
-            return allBooks;
-        String q = query.toLowerCase();
-        return allBooks.stream()
-                .filter(b -> b.getTitle().toLowerCase().contains(q) ||
-                        b.getDescription().toLowerCase().contains(q))
-                .collect(Collectors.toList());
-    }
-
-    // Show only books that have a certain tag
-    public List<IBook> filterByTag(String tag) {
-        if (tag == null || tag.equals("All"))
-            return allBooks;
-        return allBooks.stream()
-                .filter(b -> b.getMetadata().contains("Tag: " + tag))
-                .collect(Collectors.toList());
     }
 
     // Get all unique tags for the sidebar menu
@@ -126,10 +167,19 @@ public class BookManager {
         return decorated;
     }
 
+    public IBook addNote(IBook target, String note) {
+        IBook actual = unwrapDecorator(target, NoteDecorator.class);
+        IBook decorated = new NoteDecorator(actual, note);
+        updateBookInList(target, decorated);
+        return decorated;
+    }
+
     private void updateBookInList(IBook oldBook, IBook newBook) {
         int index = allBooks.indexOf(oldBook);
         if (index != -1) {
             allBooks.set(index, newBook);
+            StorageService.saveMetadata(allBooks);
+            notifyObservers();
         }
     }
 

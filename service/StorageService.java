@@ -37,6 +37,15 @@ public class StorageService {
         return history;
     }
 
+    public static void removePathFromHistory(String path) {
+        List<String> history = loadPathHistory();
+        if (history.remove(path)) {
+            try (PrintWriter out = new PrintWriter(new FileWriter(CONFIG_FILE))) {
+                for (String s : history) out.println(s);
+            } catch (IOException e) { e.printStackTrace(); }
+        }
+    }
+
     public static void saveMetadata(List<IBook> books) {
         try (PrintWriter out = new PrintWriter(new FileWriter(STORAGE_FILE))) {
             for (IBook book : books) {
@@ -46,6 +55,7 @@ public class StorageService {
 
                 int rating = 0;
                 String review = "";
+                String note = "";
                 List<String> tags = new ArrayList<>();
 
                 if (meta.contains("Rating: ")) {
@@ -55,6 +65,10 @@ public class StorageService {
                     String afterReview = meta.split("Review: ")[1];
                     review = afterReview.split(" \\| ")[0].replace("|", " ");
                 }
+                if (meta.contains("Note: ")) {
+                    String afterNote = meta.split("Note: ")[1];
+                    note = afterNote.split(" \\| ")[0].replace("|", " ");
+                }
                 if (meta.contains("Tag: ")) {
                     String[] parts = meta.split(" \\| ");
                     for (String p : parts) {
@@ -62,7 +76,7 @@ public class StorageService {
                     }
                 }
 
-                out.println(title + "|" + rating + "|" + review + "|" + String.join(",", tags));
+                out.println(title + "|" + rating + "|" + review + "|" + String.join(",", tags) + "|" + note);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,7 +91,7 @@ public class StorageService {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|", 4);
+                String[] parts = line.split("\\|", 5);
                 if (parts.length >= 1) data.put(parts[0], parts);
             }
         } catch (IOException e) {
@@ -105,6 +119,10 @@ public class StorageService {
                     for (String t : tags) {
                         decorated = new TagDecorator(decorated, t);
                     }
+                }
+                // Note (at index 4)
+                if (parts.length > 4 && !parts[4].isEmpty()) {
+                    decorated = new NoteDecorator(decorated, parts[4]);
                 }
                 books.set(i, decorated);
             }
