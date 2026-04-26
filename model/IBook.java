@@ -24,4 +24,9 @@ public interface IBook {
      * @return The absolute path to the book file.
      */
     String getFilePath();
+
+    /**
+     * @return The last read chapter index.
+     */
+    int getProgress();
 }

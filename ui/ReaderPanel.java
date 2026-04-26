@@ -1,8 +1,7 @@
 package ui;
 
 import model.IBook;
-import service.BookManager;
-import service.EpubService;
+import service.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.html.HTMLEditorKit;
@@ -16,7 +15,7 @@ import java.util.List;
 
 /**
  * Robust Scrollable Chapter Reader.
- * Centered "Paper" look with reliable chapter navigation.
+ * Features centered "Paper" look and support for TXT, EPUB, and PDF via Adapter Pattern.
  */
 public class ReaderPanel extends JPanel {
     private BookManager brain;
@@ -24,6 +23,7 @@ public class ReaderPanel extends JPanel {
     private JEditorPane contentArea;
     private JTextArea notesArea;
     private JLabel chapterLabel;
+    private JPanel paper; 
     private Runnable onClose;
 
     private List<String> chapters = new ArrayList<>();
@@ -33,19 +33,17 @@ public class ReaderPanel extends JPanel {
         this.brain = brain;
         this.currentBook = book;
         this.onClose = onClose;
+        this.currentChapter = book.getProgress(); // Load saved state
 
         setLayout(new BorderLayout());
         setBackground(new Color(235, 237, 239));
 
         initHeader(book);
         
-        // Main Body: Contains Paper (Center) and Notes (East)
         JPanel mainBody = new JPanel(new BorderLayout());
         mainBody.setOpaque(false);
-
         mainBody.add(createCenteredPaper(), BorderLayout.CENTER);
         mainBody.add(createNotesArea(book), BorderLayout.EAST);
-        
         add(mainBody, BorderLayout.CENTER);
 
         new Thread(() -> loadChapters(book)).start();
@@ -77,25 +75,26 @@ public class ReaderPanel extends JPanel {
     }
 
     private JPanel createCenteredPaper() {
-        // Centering Container using FlowLayout (very stable for fixed sizes)
-        JPanel centerWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 30));
+        // Use BorderLayout for the wrapper to allow the paper to fill space
+        JPanel centerWrapper = new JPanel(new BorderLayout());
         centerWrapper.setOpaque(false);
+        // Reduced horizontal margins to save space for the sidebar
+        centerWrapper.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // The "Paper"
-        JPanel paper = new JPanel(new BorderLayout());
+        paper = new JPanel(new BorderLayout());
         paper.setBackground(Color.WHITE);
-        paper.setPreferredSize(new Dimension(720, 700)); 
+        // Set a slightly smaller preferred width to leave room for notes
+        paper.setPreferredSize(new Dimension(650, 0)); 
         paper.setBorder(BorderFactory.createLineBorder(new Color(190, 190, 190)));
 
         contentArea = new JEditorPane();
         contentArea.setContentType("text/html");
         contentArea.setEditable(false);
         
-        // Styling
         HTMLEditorKit kit = new HTMLEditorKit();
         contentArea.setEditorKit(kit);
         StyleSheet styleSheet = kit.getStyleSheet();
-        styleSheet.addRule("body { font-family: 'Georgia', serif; font-size: 15pt; line-height: 1.8em; color: #2c3e50; padding: 40px 60px; text-align: justify; }");
+        styleSheet.addRule("body { font-family: 'Georgia', serif; font-size: 15pt; line-height: 1.8em; color: #2c3e50; padding: 40px 80px; text-align: justify; }");
         styleSheet.addRule("p { margin-bottom: 20px; }");
         
         JScrollPane scrollPane = new JScrollPane(contentArea);
@@ -103,15 +102,16 @@ public class ReaderPanel extends JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         paper.add(scrollPane, BorderLayout.CENTER);
 
-        // Navigation Footer
+        // SLIMMER NAVIGATION BAR
         JPanel nav = new JPanel(new BorderLayout());
-        nav.setBackground(new Color(250, 250, 250));
-        nav.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(230, 230, 230)));
+        nav.setBackground(new Color(252, 252, 252));
+        nav.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(240, 240, 240)));
 
-        JButton prevBtn = createNavBtn("<html><b>&#8249;</b> PREV</html>");
-        JButton nextBtn = createNavBtn("<html>NEXT <b>&#8250;</b></html>");
-        chapterLabel = new JLabel("Loading Chapters...");
-        chapterLabel.setFont(UIFactory.HEADER_FONT);
+        JButton prevBtn = createNavBtn("<html><b>&lsaquo;</b> PREV</html>");
+        JButton nextBtn = createNavBtn("<html>NEXT <b>&rsaquo;</b></html>");
+        chapterLabel = new JLabel("Loading...");
+        chapterLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10));
+        chapterLabel.setForeground(UIFactory.TEXT_SECONDARY);
         chapterLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
         prevBtn.addActionListener(e -> changeChapter(-1));
@@ -122,7 +122,7 @@ public class ReaderPanel extends JPanel {
         nav.add(nextBtn, BorderLayout.EAST);
         paper.add(nav, BorderLayout.SOUTH);
 
-        centerWrapper.add(paper);
+        centerWrapper.add(paper, BorderLayout.CENTER);
         return centerWrapper;
     }
 
@@ -172,6 +172,7 @@ public class ReaderPanel extends JPanel {
 
     private void loadChapters(IBook book) {
         String path = book.getFilePath();
+        chapters.clear();
         if (path.toLowerCase().endsWith(".txt")) {
             try {
                 String txt = new String(Files.readAllBytes(Paths.get(path)));
@@ -179,8 +180,10 @@ public class ReaderPanel extends JPanel {
             } catch (IOException e) { chapters.add("<html><body>Error reading file.</body></html>"); }
         } else if (path.toLowerCase().endsWith(".epub")) {
             chapters = EpubService.extractChapters(path);
+        } else if (path.toLowerCase().endsWith(".pdf")) {
+            chapters = PdfService.extractChapters(path);
         } else {
-            chapters.add("<html><body><center><br/><br/><h2>PDF Reader Mode</h2><p>Please use the System Viewer for PDF files.</p></center></body></html>");
+            chapters.add("<html><body><center><h2>Unsupported Format</h2></center></body></html>");
         }
 
         SwingUtilities.invokeLater(this::updateChapterUI);
@@ -191,6 +194,8 @@ public class ReaderPanel extends JPanel {
         if (next >= 0 && next < chapters.size()) {
             currentChapter = next;
             updateChapterUI();
+            // SAVE STATE TO BRAIN and update local reference
+            currentBook = brain.addProgress(currentBook, currentChapter);
         }
     }
 
@@ -199,18 +204,55 @@ public class ReaderPanel extends JPanel {
             contentArea.setText("<html><body>No readable content found.</body></html>");
             return;
         }
-        contentArea.setText(chapters.get(currentChapter));
+        
+        String content = chapters.get(currentChapter);
+        
+        if (content.startsWith("FALLBACK_MODE|")) {
+            contentArea.setText(content.split("\\|")[1]);
+            addFallbackButton();
+            chapterLabel.setText("COMPANION MODE ACTIVE");
+            return;
+        }
+
+        for(Component c : paper.getComponents()) {
+            if(c instanceof JButton && ((JButton)c).getText().contains("RE-LAUNCH")) {
+                paper.remove(c);
+            }
+        }
+
+        contentArea.setText(content);
         contentArea.setCaretPosition(0);
         chapterLabel.setText("CHAPTER " + (currentChapter + 1) + " OF " + chapters.size());
     }
 
+    private void addFallbackButton() {
+        for(Component c : paper.getComponents()) {
+            if(c instanceof JButton && ((JButton)c).getText().contains("RE-LAUNCH")) return;
+        }
+
+        JButton launchBtn = UIFactory.createPrimaryButton("RE-LAUNCH SYSTEM PDF VIEWER");
+        launchBtn.setBackground(new Color(52, 152, 219)); 
+        launchBtn.addActionListener(e -> {
+            try {
+                Desktop.getDesktop().open(new File(currentBook.getFilePath()));
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error opening PDF: " + ex.getMessage());
+            }
+        });
+
+        paper.add(launchBtn, BorderLayout.NORTH);
+        paper.revalidate();
+        paper.repaint();
+    }
+
     private JButton createNavBtn(String text) {
         JButton b = new JButton(text);
-        b.setFont(UIFactory.HEADER_FONT);
+        b.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10)); // Slimmer font
         b.setFocusPainted(false);
         b.setContentAreaFilled(false);
-        b.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        b.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15)); // Slimmer padding
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setForeground(UIFactory.TEXT_SECONDARY);
         return b;
     }
 }

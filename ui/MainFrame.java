@@ -7,6 +7,7 @@ import service.StorageService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -111,6 +112,20 @@ public class MainFrame extends JFrame implements LibraryObserver {
     private void openReader() {
         IBook selected = bookList.getSelectedValue();
         if (selected == null) return;
+
+        String path = selected.getFilePath().toLowerCase();
+        
+        // Smart Routing Strategy:
+        // If it's a PDF, we check if we should just open it externally
+        if (path.endsWith(".pdf")) {
+            // For an SDA project, this is "Graceful Degradation"
+            try {
+                Desktop.getDesktop().open(new File(selected.getFilePath()));
+                // We still open the Reader Mode so they can take NOTES while they read!
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Could not open PDF: " + ex.getMessage());
+            }
+        }
 
         ReaderPanel reader = new ReaderPanel(brain, selected, () -> {
             cardLayout.show(cardPanel, "LIBRARY");

@@ -34,6 +34,11 @@ public class BaseBook implements IBook {
     }
 
     @Override
+    public int getProgress() {
+        return 0; // Default for new books
+    }
+
+    @Override
     public String toString() {
         return title;
     }

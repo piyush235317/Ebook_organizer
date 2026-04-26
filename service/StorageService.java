@@ -56,6 +56,7 @@ public class StorageService {
                 int rating = 0;
                 String review = "";
                 String note = "";
+                int progress = 0;
                 List<String> tags = new ArrayList<>();
 
                 if (meta.contains("Rating: ")) {
@@ -69,6 +70,12 @@ public class StorageService {
                     String afterNote = meta.split("Note: ")[1];
                     note = afterNote.split(" \\| ")[0].replace("|", " ");
                 }
+                if (meta.contains("Progress: ")) {
+                    String afterProgress = meta.split("Progress: ")[1];
+                    try {
+                        progress = Integer.parseInt(afterProgress.split(" \\| ")[0]);
+                    } catch (Exception e) {}
+                }
                 if (meta.contains("Tag: ")) {
                     String[] parts = meta.split(" \\| ");
                     for (String p : parts) {
@@ -76,7 +83,7 @@ public class StorageService {
                     }
                 }
 
-                out.println(title + "|" + rating + "|" + review + "|" + String.join(",", tags) + "|" + note);
+                out.println(title + "|" + rating + "|" + review + "|" + String.join(",", tags) + "|" + note + "|" + progress);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -91,7 +98,7 @@ public class StorageService {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] parts = line.split("\\|", 5);
+                String[] parts = line.split("\\|", 6);
                 if (parts.length >= 1) data.put(parts[0], parts);
             }
         } catch (IOException e) {
@@ -123,6 +130,12 @@ public class StorageService {
                 // Note (at index 4)
                 if (parts.length > 4 && !parts[4].isEmpty()) {
                     decorated = new NoteDecorator(decorated, parts[4]);
+                }
+                // Progress (at index 5)
+                if (parts.length > 5 && !parts[5].isEmpty()) {
+                    try {
+                        decorated = new ProgressDecorator(decorated, Integer.parseInt(parts[5]));
+                    } catch (Exception e) {}
                 }
                 books.set(i, decorated);
             }

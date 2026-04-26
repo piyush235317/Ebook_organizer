@@ -7,6 +7,7 @@ import service.SortStrategy;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.Map;
 
 public class HeaderPanel extends JPanel {
     private BookManager brain;
@@ -63,11 +64,37 @@ public class HeaderPanel extends JPanel {
         folderBtn = UIFactory.createSecondaryButton("FOLDER: " + new File(brain.getCurrentPath()).getName());
         folderBtn.addActionListener(e -> selectFolder());
 
+        JButton statsBtn = UIFactory.createSecondaryButton("📊 Stats");
+        statsBtn.addActionListener(e -> showStats());
+
         controls.add(sortGroup);
         controls.add(searchGroup);
+        controls.add(statsBtn);
         controls.add(folderBtn);
 
         add(controls, BorderLayout.EAST);
+    }
+
+    private void showStats() {
+        service.LibraryStats stats = new service.LibraryStats(brain.getAllBooks());
+        
+        StringBuilder msg = new StringBuilder("<html><body style='width: 250px; padding: 10px;'>");
+        msg.append("<h2>Library Analytics</h2>");
+        msg.append("<p><b>Total Books:</b> ").append(stats.totalBooks).append("</p>");
+        msg.append("<p><b>Avg Rating:</b> ").append(String.format("%.1f", stats.avgRating)).append(" / 5.0</p>");
+        msg.append("<hr/>");
+        msg.append("<b>Books by Tag:</b><br/>");
+        
+        if (stats.tagCounts.isEmpty()) {
+            msg.append("<i style='color:gray;'>No tags found.</i>");
+        } else {
+            for (Map.Entry<String, Integer> entry : stats.tagCounts.entrySet()) {
+                msg.append(entry.getKey()).append(": ").append(entry.getValue()).append("<br/>");
+            }
+        }
+        msg.append("</body></html>");
+
+        JOptionPane.showMessageDialog(this, msg.toString(), "Statistics", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void selectFolder() {

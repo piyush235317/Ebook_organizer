@@ -33,6 +33,11 @@ public abstract class BookDecorator implements IBook {
         return decoratedBook.getFilePath();
     }
 
+    @Override
+    public int getProgress() {
+        return decoratedBook.getProgress();
+    }
+
     public IBook getDecoratedBook() {
         return decoratedBook;
     }

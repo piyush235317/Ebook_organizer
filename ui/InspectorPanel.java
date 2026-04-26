@@ -208,8 +208,20 @@ public class InspectorPanel extends JPanel {
 
     private void addRating() {
         if (currentBook == null) return;
-        String val = JOptionPane.showInputDialog(this, "Rating (1-5):");
-        if (val != null && !val.isEmpty()) brain.addRating(currentBook, Integer.parseInt(val));
+        
+        Integer[] possibilities = {1, 2, 3, 4, 5};
+        Integer val = (Integer) JOptionPane.showInputDialog(
+                this,
+                "Select a rating (1-5 stars):",
+                "Rate Book",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                possibilities,
+                5);
+
+        if (val != null) {
+            brain.addRating(currentBook, val);
+        }
     }
 
     private void addTag() {

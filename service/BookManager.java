@@ -139,8 +139,10 @@ public class BookManager {
      * Replaces existing rating if it exists.
      */
     public IBook addRating(IBook target, int stars) {
+        // Validation: Ensure rating is always between 1 and 5
+        int validStars = Math.max(1, Math.min(5, stars));
         IBook actual = unwrapDecorator(target, RatingDecorator.class);
-        IBook decorated = new RatingDecorator(actual, stars);
+        IBook decorated = new RatingDecorator(actual, validStars);
         updateBookInList(target, decorated);
         return decorated;
     }
@@ -174,8 +176,23 @@ public class BookManager {
         return decorated;
     }
 
+    public IBook addProgress(IBook target, int chapterIndex) {
+        IBook actual = unwrapDecorator(target, ProgressDecorator.class);
+        IBook decorated = new ProgressDecorator(actual, chapterIndex);
+        updateBookInList(target, decorated);
+        return decorated;
+    }
+
     private void updateBookInList(IBook oldBook, IBook newBook) {
-        int index = allBooks.indexOf(oldBook);
+        // Find by FilePath instead of reference, as decorators change the object
+        int index = -1;
+        for (int i = 0; i < allBooks.size(); i++) {
+            if (allBooks.get(i).getFilePath().equals(oldBook.getFilePath())) {
+                index = i;
+                break;
+            }
+        }
+        
         if (index != -1) {
             allBooks.set(index, newBook);
             StorageService.saveMetadata(allBooks);
