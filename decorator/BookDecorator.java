@@ -28,6 +28,11 @@ public abstract class BookDecorator implements IBook {
         return decoratedBook.getDescription();
     }
 
+    @Override
+    public String getFilePath() {
+        return decoratedBook.getFilePath();
+    }
+
     public IBook getDecoratedBook() {
         return decoratedBook;
     }

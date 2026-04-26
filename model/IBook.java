@@ -19,4 +19,9 @@ public interface IBook {
      * @return A formatted string representation of the book for the UI.
      */
     String getDescription();
+
+    /**
+     * @return The absolute path to the book file.
+     */
+    String getFilePath();
 }

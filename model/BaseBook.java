@@ -29,6 +29,11 @@ public class BaseBook implements IBook {
     }
 
     @Override
+    public String getFilePath() {
+        return filePath;
+    }
+
+    @Override
     public String toString() {
         return title;
     }

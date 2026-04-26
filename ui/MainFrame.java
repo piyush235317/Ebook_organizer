@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * MainFrame is now a clean "Orchestrator".
  * It follows the Composite Pattern by building the UI from modular panels.
+ * Now using a 3-column architecture (Sidebar | Library | Inspector).
  */
 public class MainFrame extends JFrame implements LibraryObserver {
     private BookManager brain;
@@ -21,30 +22,34 @@ public class MainFrame extends JFrame implements LibraryObserver {
     // Modular Components (Organs)
     private HeaderPanel headerPanel;
     private SidebarPanel sidebarPanel;
+    private InspectorPanel inspectorPanel;
     private DefaultListModel<IBook> listModel;
     private JList<IBook> bookList;
-    private JTextArea detailsArea;
 
     public MainFrame() {
         brain = new BookManager();
         
         setTitle("Explainable eBook Organizer");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 700);
+        setSize(1200, 800);
         setLocationRelativeTo(null);
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        // State 1: Library View
+        // State 1: Library View (3-Column Layout)
         JPanel libraryView = new JPanel(new BorderLayout());
         headerPanel = new HeaderPanel(brain);
         sidebarPanel = new SidebarPanel(brain);
+        inspectorPanel = new InspectorPanel(brain);
         
+        // Setup Inspector Actions
+        inspectorPanel.setReadAction(this::openReader);
+
         libraryView.add(headerPanel, BorderLayout.NORTH);
         libraryView.add(new JScrollPane(sidebarPanel), BorderLayout.WEST);
         libraryView.add(createMainContent(), BorderLayout.CENTER);
-        libraryView.add(createFooter(), BorderLayout.SOUTH);
+        libraryView.add(inspectorPanel, BorderLayout.EAST);
 
         cardPanel.add(libraryView, "LIBRARY");
         add(cardPanel);
@@ -53,54 +58,54 @@ public class MainFrame extends JFrame implements LibraryObserver {
         brain.addObserver(this);
     }
 
-    private JSplitPane createMainContent() {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setDividerLocation(350);
-        splitPane.setBorder(null);
+    private JPanel createMainContent() {
+        JPanel content = new JPanel(new BorderLayout());
+        content.setBackground(Color.WHITE);
 
         listModel = new DefaultListModel<>();
         bookList = new JList<>(listModel);
         bookList.setFont(UIFactory.BODY_FONT);
-        bookList.setFixedCellHeight(45);
-        bookList.addListSelectionListener(e -> showDetails());
+        bookList.setFixedCellHeight(70);
+        bookList.setBorder(null);
+        bookList.addListSelectionListener(e -> {
+            inspectorPanel.showBook(bookList.getSelectedValue());
+        });
         bookList.setCellRenderer(new BookCellRenderer());
+        bookList.setSelectionBackground(new Color(236, 240, 241));
 
-        detailsArea = new JTextArea();
-        detailsArea.setEditable(false);
-        detailsArea.setMargin(new Insets(20, 20, 20, 20));
-        detailsArea.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        detailsArea.setBackground(new Color(252, 252, 252));
-
-        splitPane.setTopComponent(new JScrollPane(bookList));
-        splitPane.setBottomComponent(new JScrollPane(detailsArea));
-        return splitPane;
+        content.add(new JScrollPane(bookList), BorderLayout.CENTER);
+        return content;
     }
 
-    private JPanel createFooter() {
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        footer.setBackground(Color.WHITE);
+    // --- Observer Implementation ---
 
-        JButton scanBtn = UIFactory.createSecondaryButton("⟳ Scan");
-        JButton readBtn = UIFactory.createPrimaryButton("Read 📖");
-        JButton rateBtn = UIFactory.createPrimaryButton("★ Rate");
-        JButton reviewBtn = UIFactory.createPrimaryButton("✎ Review");
-        JButton tagBtn = UIFactory.createPrimaryButton("🏷 Tag");
-        JButton resetBtn = UIFactory.createSecondaryButton("✖ Reset");
+    @Override
+    public void onLibraryChanged(List<IBook> books) {
+        // 1. Save current selection
+        IBook selected = bookList.getSelectedValue();
+        String selectedPath = (selected != null) ? selected.getFilePath() : null;
 
-        scanBtn.addActionListener(e -> brain.refreshLibrary(null));
-        readBtn.addActionListener(e -> openReader());
-        rateBtn.addActionListener(e -> addRating());
-        reviewBtn.addActionListener(e -> addReview());
-        tagBtn.addActionListener(e -> addTag());
-        resetBtn.addActionListener(e -> clearMetadata());
+        // 2. Update the model
+        listModel.clear();
+        int newIndex = -1;
+        for (int i = 0; i < books.size(); i++) {
+            IBook b = books.get(i);
+            listModel.addElement(b);
+            if (selectedPath != null && b.getFilePath().equals(selectedPath)) {
+                newIndex = i;
+            }
+        }
 
-        footer.add(scanBtn);
-        footer.add(readBtn);
-        footer.add(rateBtn);
-        footer.add(reviewBtn);
-        footer.add(tagBtn);
-        footer.add(resetBtn);
-        return footer;
+        // 3. Restore selection and update Inspector
+        if (newIndex != -1) {
+            bookList.setSelectedIndex(newIndex);
+            inspectorPanel.showBook(books.get(newIndex));
+        } else {
+            inspectorPanel.showBook(null);
+        }
+
+        sidebarPanel.refresh();
+        headerPanel.updateFolderLabel(brain.getCurrentPath());
     }
 
     private void openReader() {
@@ -113,52 +118,6 @@ public class MainFrame extends JFrame implements LibraryObserver {
         
         cardPanel.add(reader, "READER");
         cardLayout.show(cardPanel, "READER");
-    }
-
-    // --- Observer Implementation ---
-
-    @Override
-    public void onLibraryChanged(List<IBook> books) {
-        listModel.clear();
-        for (IBook b : books) listModel.addElement(b);
-        sidebarPanel.refresh();
-        headerPanel.updateFolderLabel(brain.getCurrentPath());
-    }
-
-    // --- Actions (Delegated to Brain) ---
-
-    private void showDetails() {
-        IBook selected = bookList.getSelectedValue();
-        if (selected != null) {
-            detailsArea.setText(selected.getDescription() + "\n\n" + selected.getMetadata());
-        }
-    }
-
-    private void addRating() {
-        IBook selected = bookList.getSelectedValue();
-        if (selected == null) return;
-        String val = JOptionPane.showInputDialog(this, "Rating (1-5):");
-        if (val != null && !val.isEmpty()) brain.addRating(selected, Integer.parseInt(val));
-    }
-
-    private void addReview() {
-        IBook selected = bookList.getSelectedValue();
-        if (selected == null) return;
-        String val = JOptionPane.showInputDialog(this, "Review:");
-        if (val != null) brain.addReview(selected, val);
-    }
-
-    private void addTag() {
-        IBook selected = bookList.getSelectedValue();
-        if (selected == null) return;
-        String val = JOptionPane.showInputDialog(this, "Tag:");
-        if (val != null && !val.isEmpty()) brain.addTag(selected, val);
-    }
-
-    private void clearMetadata() {
-        IBook selected = bookList.getSelectedValue();
-        if (selected == null) return;
-        brain.clearMetadata(selected);
     }
 
     public static void main(String[] args) {

@@ -23,16 +23,18 @@ public class SidebarPanel extends JPanel {
         
         // Tags Section
         add(UIFactory.createHeaderLabel("Filter by Tag"));
+        add(Box.createVerticalStrut(5));
         for (String tag : brain.getUniqueTags()) {
             JButton btn = UIFactory.createSidebarButton(tag);
             btn.addActionListener(e -> brain.setSelectedTag(tag));
             add(btn);
         }
 
-        add(Box.createVerticalStrut(25));
+        add(Box.createVerticalStrut(30));
 
         // Recent Folders Section
         add(UIFactory.createHeaderLabel("Recent Folders"));
+        add(Box.createVerticalStrut(5));
         for (String path : brain.getRecentPaths()) {
             File f = new File(path);
             JButton btn = UIFactory.createSidebarButton("▸ " + f.getName());

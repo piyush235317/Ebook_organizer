@@ -16,36 +16,55 @@ public class HeaderPanel extends JPanel {
         this.brain = brain;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIFactory.BORDER_COLOR),
+            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
 
         JLabel titleLabel = new JLabel("eBook Organizer");
         titleLabel.setFont(UIFactory.TITLE_FONT);
+        titleLabel.setForeground(UIFactory.TEXT_PRIMARY);
         add(titleLabel, BorderLayout.WEST);
 
         // Control Panel
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel controls = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         controls.setBackground(Color.WHITE);
 
-        // Sorting
+        // Sorting Group
+        JPanel sortGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        sortGroup.setBackground(Color.WHITE);
+        JLabel sortLabel = new JLabel("Sort by:");
+        sortLabel.setFont(UIFactory.HEADER_FONT);
+        sortLabel.setForeground(UIFactory.TEXT_SECONDARY);
+        
         JComboBox<SortStrategy> sortCombo = new JComboBox<>(new SortStrategy[]{
                 new SortByTitle(),
                 new SortByRating()
         });
+        sortCombo.setFont(UIFactory.BODY_FONT);
         sortCombo.addActionListener(e -> brain.setSortStrategy((SortStrategy) sortCombo.getSelectedItem()));
+        sortGroup.add(sortLabel);
+        sortGroup.add(sortCombo);
 
-        // Search
-        JTextField searchField = new JTextField(10);
+        // Search Group
+        JPanel searchGroup = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        searchGroup.setBackground(Color.WHITE);
+        JLabel searchLabel = new JLabel("Search:");
+        searchLabel.setFont(UIFactory.HEADER_FONT);
+        searchLabel.setForeground(UIFactory.TEXT_SECONDARY);
+        
+        JTextField searchField = new JTextField(12);
+        searchField.setFont(UIFactory.BODY_FONT);
         searchField.addCaretListener(e -> brain.setSearchQuery(searchField.getText()));
+        searchGroup.add(searchLabel);
+        searchGroup.add(searchField);
 
         // Folder
-        folderBtn = new JButton("FOLDER: " + new File(brain.getCurrentPath()).getName());
-        folderBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        folderBtn = UIFactory.createSecondaryButton("FOLDER: " + new File(brain.getCurrentPath()).getName());
         folderBtn.addActionListener(e -> selectFolder());
 
-        controls.add(new JLabel("Sort:"));
-        controls.add(sortCombo);
-        controls.add(new JLabel("Search:"));
-        controls.add(searchField);
+        controls.add(sortGroup);
+        controls.add(searchGroup);
         controls.add(folderBtn);
 
         add(controls, BorderLayout.EAST);
