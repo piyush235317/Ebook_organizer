@@ -1,5 +1,9 @@
-C:\Books and stuff\Novels\(A Song of Ice and Fire'', 01) George R.R. Martin - A Game of Thrones-Bantam (2002).epub|(A Song of Ice and Fire,  Book 1) - A Game of Thrones|5|Best book ever|Fantasy||0
-C:\Books and stuff\Novels\(Earthsea 2) LeGuin, Ursula K - The Tombs Of Atuan (1).epub|(Earthsea 2) LeGuin, Ursula K - The Tombs Of Atuan (1)|3||Fantasy,Classic||0
-C:\Books and stuff\Novels\(Harry Potter 1) Rowling, J.K. - Harry Potter 01 - Harry Potter and the Philosopher’s Stone.epub|(Harry Potter 1) Rowling,Harry Potter and the Philosopher’s Stone|5|Best sereis opener ever.|Fantasy,YA||0
-C:\Books and stuff\Novels\(Harry Potter 4) Rowling, Joanne Kathleen_ Grandpre, Mary - Harry Potter and the Goblet of Fire.epub|(Harry Potter 4) Rowling, Joanne Kathleen  Grandpre, Mary - Harry Potter and the Goblet of Fire|0||||17
-C:\Books and stuff\Novels\5_6142913714254250987.epub|5 6142913714254250987|0||||19
+C:\Books and stuff\Novels\(A Song of Ice and Fire'', 01) George R.R. Martin - A Game of Thrones-Bantam (2002).epub|(A Song of Ice and Fire'', 01) George R.R. Martin - A Game of Thrones-Bantam (2002)|5||||12
+C:\Books and stuff\Novels\(Earthsea 2) LeGuin, Ursula K - The Tombs Of Atuan (1).epub|(Earthsea 2) LeGuin, Ursula K - The Tombs Of Atuan (1)|3||Classic||0
+C:\Books and stuff\Novels\(Harry Potter 1) Rowling, J.K. - Harry Potter 01 - Harry Potter and the Philosopher’s Stone.epub|(Harry Potter 1) Rowling, J.K. - Harry Potter 01 - Harry Potter and the Philosopher’s Stone|3||Classic||0
+C:\Books and stuff\Novels\(Harry Potter 2) Rowling, Joanne Kathleen - Harry Potter and the Chamber of Secrets (2).epub|(Harry Potter 2) Rowling, Joanne Kathleen - Harry Potter and the Chamber of Secrets (2)|4||||0
+C:\Books and stuff\Novels\(Harry Potter 3) Rowling, Joanne Kathleen_ GrandPr_, Mary - Harry Potter and the Prisoner of Azkaban.epub|(Harry Potter 3) Rowling, Joanne Kathleen  GrandPr , Mary - Harry Potter and the Prisoner of Azkaban|4||||0
+C:\Books and stuff\Novels\(Lunar Chronicles 1) Meyer, Marissa - Cinder (1).epub|(Lunar Chronicles 1) Meyer, Marissa - Cinder (1)|2||Sci-Fi||0
+C:\Books and stuff\Novels\(Mistborn #2) Brandon Sanderson [Sanderson, Brandon] - 2-The Well of Ascension (2007).epub|(Mistborn #2) Brandon Sanderson [Sanderson, Brandon] - 2-The Well of Ascension (2007)|4||Fantasy||0
+C:\Books and stuff\Novels\(Riftwar 1-02) Feist, Raymond E - Magician.epub|(Riftwar 1-02) Feist, Raymond E - Magician|3||||0
+C:\Books and stuff\Novels\(Sarantine Mosaic 1) Kay, Guy Gavriel - Sailing to Sarantium.epub|(Sarantine Mosaic 1) Kay, Guy Gavriel - Sailing to Sarantium|4||||0
